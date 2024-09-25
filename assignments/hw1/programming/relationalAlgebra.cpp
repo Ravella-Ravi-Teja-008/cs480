@@ -200,7 +200,25 @@ static relation<arity> selection (relation<arity> inputRelation, int attributeIn
 
     auto outputRelation = relation<arity>();
     
-    // TODO: Task 1 implement this function
+    for (const auto& tuple : inputRelation.getDataBuffer()) {
+        bool conditionMet = false;
+        switch (operation) {
+            case EQUAL:
+                conditionMet = (tuple[attributeIndex] == operand);
+                break;
+            case LESSTHAN:
+                conditionMet = (tuple[attributeIndex] < operand);
+                break;
+            case GREATERTHAN:
+                conditionMet = (tuple[attributeIndex] > operand);
+                break;
+        }
+        if (conditionMet) {
+            outputRelation.getDataBuffer().insert(tuple);
+        }
+    }
+
+    outputRelation.setTupleCount(outputRelation.getDataBuffer().size());
 
     return outputRelation;
 }
@@ -247,10 +265,18 @@ static relation<outputArity> projection (relation<inputArity> inputRelation, int
     }
     auto outputRelation = relation<outputArity>();
     
-    // TODO: Task 2 implement this function
+    for (const auto& tuple : inputRelation.getDataBuffer()) {
+        std::array<int, outputArity> newTuple;
+        for (size_t i = 0; i < outputArity; ++i) {
+            newTuple[i] = tuple[indicesOfAttributesToKeepArray[i]];
+        }
+        outputRelation.getDataBuffer().insert(newTuple);
+    }
 
+    outputRelation.setTupleCount(outputRelation.getDataBuffer().size());
     return outputRelation;
 }
+
 
 
 /*
@@ -280,7 +306,20 @@ static relation<inputArity1 + inputArity2> crossProduct (relation<inputArity1> i
 
     auto outputRelation = relation<inputArity1 + inputArity2>();
     
-    // TODO: Task 3 implement this function
+    for (const auto& tuple1 : inputRelation1.getDataBuffer()) {
+        for (const auto& tuple2 : inputRelation2.getDataBuffer()) {
+            std::array<int, inputArity1 + inputArity2> newTuple;
+            for (size_t i = 0; i < inputArity1; ++i) {
+                newTuple[i] = tuple1[i];
+            }
+            for (size_t j = 0; j < inputArity2; ++j) {
+                newTuple[inputArity1 + j] = tuple2[j];
+            }
+            outputRelation.getDataBuffer().insert(newTuple);
+        }
+    }
+
+    outputRelation.setTupleCount(outputRelation.getDataBuffer().size());
 
     return outputRelation;
 }
@@ -322,8 +361,29 @@ static relation<inputArity1 + inputArity2> equiJoinQuadratic (relation<inputArit
 
     auto outputRelation = relation<inputArity1 + inputArity2>();
     
-    // TODO: Task 4 implement this function
+    for (const auto& tuple1 : inputRelation1.getDataBuffer()) {
+        for (const auto& tuple2 : inputRelation2.getDataBuffer()) {
+            bool joinConditionMet = true;
+            for (int i = 0; i < joinColumnIndexLength; ++i) {
+                if (tuple1[relation1JoinColumnIndexArray[i]] != tuple2[relation2JoinColumnIndexArray[i]]) {
+                    joinConditionMet = false;
+                    break;
+                }
+            }
+            if (joinConditionMet) {
+                std::array<int, inputArity1 + inputArity2> newTuple;
+                for (size_t i = 0; i < inputArity1; ++i) {
+                    newTuple[i] = tuple1[i];
+                }
+                for (size_t j = 0; j < inputArity2; ++j) {
+                    newTuple[inputArity1 + j] = tuple2[j];
+                }
+                outputRelation.getDataBuffer().insert(newTuple);
+            }
+        }
+    }
 
+    outputRelation.setTupleCount(outputRelation.getDataBuffer().size());
     return outputRelation;
 }
 
